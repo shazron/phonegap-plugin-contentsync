@@ -68,6 +68,28 @@ xmlns:android="http://schemas.android.com/apk/res/android"
                 <param name="ios-package" value="ContentSync" />
             </feature>
         </config-file>
+        <config-file target="*-Info.plist" parent="UTImportedTypeDeclarations">
+            <array>
+                <dict>
+                    <key>LSTypeIsPackage</key>
+                    <true/>
+                    <key>UTTypeConformsTo</key>
+                    <array>
+                        <string>com.apple.bundle</string>
+                        <string>com.apple.package</string>
+                    </array>
+                    <key>UTTypeDescription</key>
+                    <string>CDVPlugin</string>
+                    <key>UTTypeIdentifier</key>
+                    <string>org.apache.cordova.cdvplugin</string>
+                    <key>UTTypeTagSpecification</key>
+                    <dict>
+                        <key>item 0</key>
+                        <string>cdvplugin</string>
+                    </dict>
+                </dict>
+            </array>
+        </config-file>        
         <framework src="libz.dylib" />
     </platform>
 </plugin>

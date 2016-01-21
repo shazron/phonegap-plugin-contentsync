@@ -1,4 +1,5 @@
 #import "ContentSync.h"
+#import <Cordova/CDVViewController.h>
 
 @implementation ContentSyncTask
 
@@ -445,10 +446,15 @@
     if(sTask) {
         
         BOOL copyCordovaAssets = [[sTask.command argumentAtIndex:4 withDefault:@(NO)] boolValue];
+        BOOL loadNativePlugins = [[sTask.command argumentAtIndex:9 withDefault:@(NO)] boolValue];
         
         if(copyCordovaAssets == YES) {
             [self copyCordovaAssets:unzippedPath];
         }
+        if (loadNativePlugins == YES) {
+            [self loadNativePlugins:unzippedPath];
+        }
+        
         // XXX this is to match the Android implementation
         CDVPluginResult* pluginResult = [self preparePluginResult:100 status:Complete];
         [pluginResult setKeepCallbackAsBool:YES];
@@ -545,6 +551,69 @@
         session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
     });
     return session;
+}
+
+- (void) loadNativePlugins:(NSString*)unzippedPath {
+    NSFileManager* fileManager = [NSFileManager defaultManager];
+    
+    NSError* err;
+    for (NSString* item in [fileManager contentsOfDirectoryAtPath:unzippedPath error:&err]) {
+        
+        if (![item hasSuffix:@".cdvplugin"]) {
+            continue;
+        }
+        
+        NSString* bundlePath = [unzippedPath stringByAppendingPathComponent:item];
+        [self loadNativePluginFromLocation:[NSURL fileURLWithPath:bundlePath]];
+    }
+    
+}
+
+- (BOOL) loadNativePluginFromLocation:(NSURL*)pluginLocation {
+    
+    // pluginLocation must be a file:// URL
+    NSBundle* plugin = [[NSBundle alloc] initWithURL:pluginLocation];
+    NSError* err = nil;
+    
+    if (![plugin preflightAndReturnError:&err]) {
+        NSLog(@"Error: unable to preflight plugin at %@ (%@)", pluginLocation, err);
+        return NO;
+    }
+    
+    if (![plugin loadAndReturnError:&err]) {
+        NSLog(@"Error: unable to load plugin at %@ (%@)", pluginLocation, err);
+        return NO;
+    };
+    
+    Class pluginClass = [plugin principalClass];
+    if (nil == pluginClass) {
+        NSLog(@"Error: unable to load plugin principalClass for plugin %@", pluginLocation);
+        return NO;
+    }
+    
+    // read the CDVPluginKeys dictionary from the bundle Info.plist
+    NSDictionary* cdvPluginKeys = [plugin objectForInfoDictionaryKey:@"CDVPluginKeys"];
+    if (nil == cdvPluginKeys) {
+        NSLog(@"Error: unable to load CDVPluginKeys dictionary settings for plugin %@", pluginLocation);
+        return NO;
+    }
+
+    NSString* pluginName = cdvPluginKeys[@"PluginName"];
+    if (nil == pluginName) {
+        NSLog(@"Error: unable to load CDVPluginKeys/PluginName dictionary setting for plugin %@", pluginLocation);
+        return NO;
+    }
+    
+    id pluginInstance = [[pluginClass alloc] init];
+    if (![pluginInstance isKindOfClass:[CDVPlugin class]]) {
+        NSLog(@"Error: plugin is not a CDVPlugin class, for plugin %@", pluginLocation);
+        return NO;
+    }
+    
+    CDVViewController* vc = (CDVViewController*)self.viewController;
+    [vc registerPlugin:pluginInstance withPluginName:pluginName];
+
+    return YES;
 }
 
 @end

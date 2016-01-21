@@ -60,6 +60,7 @@ Parameter | Description
 `options.timeout` | `Double` _(Optional)_ Request timeout. 
 `options.trustHost` | `Boolean` _(Optional)_ Trust SSL host. Host defined in `options.src` will be trusted. Ignored if `options.src` is undefined.
 `options.manifest` | `String` _(Optional)_ If specified the `copyRootApp` functionality will use the list of files contained in the manifest file during it's initial copy. {Android only}
+`options.loadNativePlugins` | `Boolean` _(Optional)_ If specified this will try to load any native .cdvplugin plugins. {iOS only}
 
 #### Returns
 
