@@ -605,8 +605,8 @@
     }
     
     id pluginInstance = [[pluginClass alloc] init];
-    if (![pluginInstance isKindOfClass:[CDVPlugin class]]) {
-        NSLog(@"Error: plugin is not a CDVPlugin class, for plugin %@", pluginLocation);
+    if (nil == pluginInstance) {
+        NSLog(@"Error: plugin cannot be instantiated, for plugin %@", pluginLocation);
         return NO;
     }
     
