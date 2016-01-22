@@ -612,6 +612,7 @@
     
     CDVViewController* vc = (CDVViewController*)self.viewController;
     [vc registerPlugin:pluginInstance withPluginName:pluginName];
+	NSLog(@"Registered class %@ with pluginName %@", NSStringFromClass(pluginClass), pluginName);
 
     return YES;
 }
